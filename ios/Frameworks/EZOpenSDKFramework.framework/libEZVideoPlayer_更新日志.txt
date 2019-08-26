@@ -1,0 +1,315 @@
+播放组件 3.3.0 更新记录：
+1.去除EZPlayerParam中的参数clientIspType，外部无需再传入
+2.EZPlayerParam中的iInternetType 参数，仅传入 0-未知网络或无网络 1-wifi网络； 2-4G/3G/2G,未知的运营商类型，其他类型请勿传入
+3.去除对蚁兵软加密的支持，APP不再向设备传递软加密请求
+4.将C++层播放相关的接口独立出来，区别于取流SDK的头文件
+5.增加resetView:接口，具体见接口说明
+6.加强下载SD卡录像的逻辑，当前支持v3 P2P，内外网直连以及流媒体。注意：
+    a.如果设备不支持v3P2P下载，需要禁止P2P的取流方式（如果不禁止，且设备支持v3P2P，则库内部会尝试P2P下载，最终报错）
+    b.内外网直连仅在 iSupportPlayBackEndFlag 为 1 的情况下 才会尝试，并且尝试的时候会以8倍速推流的形式下载
+    c.以上两种情况都不支持的情况下，尝试流媒体回放速率下载
+    d.下载传入需要下载的文件的路径，库内部会下载完成后抛送通知，但下载的文件是未解密的，如果是加密的码流，需要调用转封装库接口再转一次
+7.支持外部获取内部的缓存域名IP解析结果，以及在启动时设置进来（getResolvedIPs，setBackupIPs）
+8.依照流媒体更新，25410错误码更新为 25416，相应的针对该错误码的逻辑作修改
+9.针对回放的 25416 错误（流媒体报的达到最大连接数），等待500毫秒重试
+10.更新 OpenSSL Wrap v1.8.6.20190425_285403
+11.更新对讲库 AudioEngine_3.0.3.3定制build20190429svn_48415 优化对讲延迟和效果
+12.更新转封装库：Systransform_2.5.3.5_cust_20190415_ios 解决之前 3.1.0 遗留的问题
+13.将关闭预录制放到 mpRecordStream 判断内，规避播放库内部针对视频编码为0预录制崩溃的问题
+14.修复 3.1.0 uuid 生成随机性差的问题
+15.增加显示画中画接口setSubWindow，具体见接口说明
+16.增加播放库的写字接口setSubText，具体见接口说明
+17.增加播放库写字要使用的字体文件路径设置接口setOverlayFontPath，具体见接口说明
+18.更新播放库ios_playctrl7.3.7.34_build20190428_SVN48399
+19.统一Android和iOS上报的 seq 的 问题（之前Android没有上报，iOS在OC层报的）
+20.去除之前OC层的卡顿比统计定时器
+21.在重试的过程中判断当前是否用户已停止预览
+22.优化流头的处理逻辑，在流头处理过程中，不申请操作锁，以处理P2P start接口未返回但流头上来的情况
+23.增加当前已播放的总流量接口：totalFlow
+24.优化流媒体切P2P/直连的代码，解决线上转的过程中产生的崩溃
+26.参考李磊之前的邮件，修改为【200ms以下：用户对该卡顿基本无感知 200ms-500ms：用户感知到轻微卡顿 500ms以上：用户感知到明显卡顿】
+27.增加禁止流媒体取流EZStreamFetchDisablePrivateStream（C++:EZ_STREAM_DISABLE_PRIVATE_STREAM)，用于上层在希望走HCNetSDK而不希望尝试流媒体的情况下禁止流媒体，请注意：该修改会导致以前类似 iStreamInhibit = -1 这样的代码出现问题
+28.根据皮工给出的方案，暂时去除对CAS上抛的 CASCLIENT_DVR_PLAYBACK_OVER 消息的处理，CAS后续去除该消息
+29.增加全链路加密的两个全局接口 ezstream_generateECDHKey ezstream_setClientECDHKey
+30.播过参数中增加全链路加密的两个参数vtduServerKeyVersion和vtduServerPublicKey，具体使用见说明
+31.修复转码的一个细节问题(转码库调用存在问题）
+32.下载的直连取流方式，限制内网8倍速推流，外网2倍速推流（外网4倍以及以上会抽帧）
+33.更新重试逻辑，预览 流媒体报 5504 不再重试
+34.更新 libstreamclient=v3.2.0_298477
+35.优化-2的统计逻辑，补全之前遗漏的-2的场景
+36.对于重试的取流，如果之前是播放层超时的错误，第二次可能小MTU尝试，第三次再重试，只会走流媒体
+37.增加播放库显示POS私有数据接口setPrivatePosInfo，详细见接口说明
+38.更新转码库 FmtCvt_IOS_8.0_nobitcode_V4.1.2.32_Build20190603-1， 解决针对1920*1088分辨率的问题
+39.C++层的回调函数，增加autoreleasepool，用以解决【对player.delegate的访问导致引用计数增加的问题】
+40.优化转封装逻辑，对于没有流头的流，也能够正确转出来（通过转码库的探测功能）
+41.修复之前的流媒体库在播放过程中报错未上报的问题(之前以24作为断流错误码）
+42.更新 FmtCvt_IOS_8.0_nobitcode_V4.1.2.32_Build20190606 ，再次修复1088分辨率问题
+43.增加接口ezstream_setSSLTryCount，用以配置CAS内部SSL复合链接的次数
+44.修复流媒体取流UDP标记上报不准确问题
+45.增加接口getPlayerDecodeEngine，获取当前的软硬解情况 1：软解 2：硬解 0：出错
+46.C++层删除 ezstream_setHumanDetect 接口，用 ezstream_setIntelData 接口替代（名字更准确）
+47.OC层提供接口setIntelData，温感相机红色框使用
+48.根据刘群给的方案，规避session长度过长对老tts对讲的影响（写死一个无效session）
+
+iOS播放组件 3.2.0 更新记录：
+1.替换原有的音频路由方式，对讲采用PlayAndRecord，播放库播放采用Playback，（双向音视频采用PlayAndRecord）
+2.解决云存储 Android seek 成功后 获取OSD 时间 依然能够拿到之前的时间的问题（规避）
+3.更新对讲库 ios_AudioEngine3.0.3.1_voip_build20190410_svn47826，解决对讲延迟问题
+4.增加通知EZVideoPlayerMessageStreamFetchTypeChange，用以告知外层取流方式发生变化
+
+iOS播放组件 3.1.0 更新记录：
+1.增加云存储回放时播放库的长帧间隔设置，用以处理两个片段之间相差小于17S，导致触发播放库长帧间隔播放机制的问题
+2.更新播放库ios_playctrl7.3.7.31build20190122SVN45931
+3.修改反向直连UPNP上报systemname不对的问题
+4.更新libstreamclientv3.1.0_255968。修复蚁兵联通统计错误；统计信息中增加streamkey；qos report增加jitter buffer数据
+5.更新libcasclientv2.5.0.8.20190114_259176。支持android和ios反向直连upnp数据信息获取；针对P2P V3打洞错误码554进行优化；支持打洞上报CT检测次数；优化线上P2P打洞358错误；修复CT检测逻辑中低概率崩溃问题
+6.更新opensslv1.0.2q修复安全漏洞
+7.更新libopensslwrapv1.8.5_258389
+8.更新IOS_PlayCtrl_7.3.7.31_build20190128_svn46097 解决播放库 265 编码崩溃问题
+9.更新libcasclientv2.5.0.10.20190117_260429 修复P2P打洞时间减少的问题, 此问题导致P2P打洞成功率下降
+10.更新libopensslwrapv1.8.5.20190129_262964
+11.调整音视频加密判断逻辑，加入对原始音视频加密的判断（内部修改）
+12.尝试解决流媒体转P2P过程中出现异常情况（上层检测到超时重试的流媒体对象被切换的线程赋值为null导致泄露流媒体取流）导致的崩溃问题
+13.更新转码库FmtCvt_IOS_8.0_nobitcode_V4.1.2.31_Build20190218，支持针对分辨率变化报错EZ_TRANSFORM_ERROR_RES_CHANGED
+14.更新转封装库SystemTrans_2.5.3.5_ios_cust_20190216，支持针对分辨率变化报错EZ_TRANSFORM_ERROR_RES_CHANGED
+15.增加对云存储全帧快放切换到抽帧快放的支持，在由全帧切换到抽帧时，向上层抛送消息：EZVideoPlayerMessageCloudIFrameChange
+16.更新 CAS v2.5.0.10.20190117_260429
+17.更新libstreamclient v3.1.1_265264，流媒体预览子表增加质量上报三个字段lag_slight lag_middle lag_serious
+18.去除流媒体切P2P/外网直连 的 通过帧分析库平滑切换的业务 ，直接通过流头切换。
+19.删除卡顿比开关接口（allowDelayStatistic），默认全开
+20.修复以下场景产生的崩溃：用户stop下来和底层错误处理线程的并发情况
+21.调试模式区分RTP还是PS，RTP的话，保存码流的长度。
+22.修复3.0.0 遗留的一个基础线程组建的问题：如果向任务线程抛送一个任务后，立马再抛送一个任务，则第二个任务要等到下一次抛送任务时才执行。
+23.更新CAS 2.5.1.20190312_270976，详细更新日志见CAS更新日志
+24.应俞丹需求，P2P取流子表增加统计上报字段 udtconnect
+25.更新CAS libcasclient-v2.5.1.20190320_273949
+
+iOS播放组件 3.0.0 更新记录：
+1.重构播放层，采用C++跨平台实现，包括预览、回放、云存储回放、统计等
+2.HCNetSDK修改为条件编译，播放组件可以在编译阶段去除该库提供给开放平台等使用方
+3.去除了gatherVia 接口 因为播放组件统计数据中已包含该信息，上层不再需要在主表填写该字段
+4.去除了setBackgroundFlag 接口 考虑切到后台是否会崩溃
+5.回放的设置速率接口setPlaybackRate 现在必须在非主线程调用（跨平台代码无法获知当前是否在主线程）
+6.云存储回放设置速率接口 speedCloudPlayback 的速率改了，统一到EZ_PLAY_BACK_RATE
+7.同上一条一致，EZPlayerParam 中的 cloudPlaybackSpeed 速率定义改了
+8.HCNetSDK的回放增加setPlaybackConvert接口 单独设置（内部修改）
+9.原先的鱼眼刷新接口，其实是刷新整个播放窗口，因此参数去除了原先的鱼眼子port。- (int)refreshPlay
+10.如果设置了快放，播放成功后不能打开声音，当前APP无论什么情况都尝试在成功播放后打开声音
+11.注册的鱼眼显示回调，如果不注销，回调会一直有（原先也是如此，调用者需要关注这一点）
+12.增加了头文件EZMediaType.h,包含该头文件的OC文件要采用OC++编译，因为包含了C++11的特性
+13.萤石私有数据回调开关名称修改openPTZPrivateData修改为openEZVIZPrivateData，更准确
+14.didDecodedData同步回调的解码数据，上层必须谨慎处理，最好是不要拷贝数据，如果需要拷贝，考虑内存问题
+15.更新 FmtCvt_IOS_8.0_nobitcode_V4.1.2.32_Build20181207
+16.更新 SystemTrans_2.5.3.5_ios_cust_20181204
+17.转封装逻辑统一挪到C++层，Android 和 iOS 统一
+18.卡顿通知的耗时类型从NSTimeInterval变为NSInteger，单位由秒变为毫秒
+
+iOS播放组件 2.5.1 更新记录：
+1.更新播放库Playctrl7.3.5.68build20190123SVN45959，解决播放库opengl渲染崩溃；
+
+iOS播放组件 2.5.0 更新记录：
+1.增加- (int) openHumanDetect:(int)status 人形检测设置接口
+2.更新 libcasclient-v2.5.0.6.20181119_243570 修复客户端直连回放点击暂停时，libCAS没有解析暂停响应报文而默认暂停成功的问题。直连回放协议增加回放码流清晰度字段definition.支持P2P云台控制超时设置，修复P2P云台控制错误码216.
+3.更新 libstreamclient-v3.0.9_243203 增加走蚁兵回放功能，新增蚁兵回放统计上报via值19
+4.更新播放库 ios_playctrl7.3.5.67build2018_12_03svn44119 版本 修复鱼眼设备码流矫正及本地预录制矫正问题
+5.增加接口-(void) setMax43PunchDevices:(NSUInteger) maxcount 修复用户在4G网络下43组合打洞反馈的萤石云App断网问题, 客户端依据灰度配置项设置打洞次数上限
+6.增加云台超时时间设置，通过ezPTZ键设置,该值默认值1000ms，最小值200ms，最大值2000ms
+7.通用库打洞次数调整，去除重试策略
+8.手表语音上传增加token字段，EZStreamType.h头文件中的UPLOAD_VOICE_PARAM结构体对应增加szTicketToken字符串对象用于透传
+9.更新hcnetsdk_iOS_V5.3.5.52_build20181121，修复xcode10编译问题
+10.新增-(void)setHDPriority:(BOOL)HDPriority 设置硬解优先接口
+11.更新libstreamclient-v3.1.0_249657 优化jitter buufer的追帧处理
+
+iOS播放组件 2.4.4 更新记录：
+1.更新hcnetsdk_iOS_V5.3.5.52_build20181121，修复xcode10编译问题
+2.更新libcasclientv2.5.0.10.20190117_260429。支持android和ios反向直连upnp数据信息获取；针对P2P V3打洞错误码554进行优化；支持打洞上报CT检测次数；优化线上P2P打洞358错误；修复CT检测逻辑中低概率崩溃问题；修复P2P打洞时间减少的问题, 此问题导致P2P打洞成功率下降
+3.更新opensslv1.0.2q修复安全漏洞
+4.更新libopensslwrapv1.8.5.20190129_262964
+
+iOS播放组件 2.4.3 更新记录：
+1.EZPlayerParam 中增加 iSupportPlayBackEndFlag 参数，标志设备是否支持直连回放结束标记
+
+iOS播放组件 2.4.2 更新记录：
+1.去除云存储播放的offsetTime参数  统一 传入 startTime 和 stopTime （有fileId 传入 fileId)
+2.增加逻辑：P2P取流报24错误后，重试取流继续用p2p，且设置mtu为更小值
+3.增加- (void)setP2PMTU:(NSInteger)smallerMTU 接口
+4.增加 - (void)setLocalWLANIP:(NSString *)ip 接口，用于设置设备本机的外网IP
+5.修复直连预览回放等失败时创建的CAS句柄泄露的问题
+6.增加参数 iDevSupportAsyn 设备是否支持流媒体预览信令异步处理
+7.修改token 长度过长是 取流库里 报token不足 而不是 token无效
+8.增加接口：- (void)setPlayerSDKTimeout:(NSDictionary *)timeoutDic，用以外部控制播放SDK内部的部分超时
+9.删除 EZPlayerParam 的belongObject 参数，上层如果需要播放关联后端的录像，直接将后端的信息传入EZPlayerParam。（传入的设备序列号是后端的，通道号是IPC关联的后端的通道
+9.5.增加 EZPlayerParam 中 szChnlSerial 参数，具体细节见该参数说明（非常重要）
+10.修改缺陷：当回放正处于倍速回放时，底层播放库重试后速度恢复1倍速但记录的倍速状态没有清理，导致上层再设置下来的倍速无效
+11.EZPlayerParam中 增加参数 timeOutOfStreamHeader 流头超时，开放出来用于电池相机设置流头超时，电池相机因为唤醒原因，流媒体取流的流头可能来的很晚 单位毫秒 当前仅支持设置到秒级，比如 1000， 5000，最小3000，最大30000
+12.对讲上报增加seq
+13.修改蚁兵上报错误码没有偏移问题
+14.修复 【直连取流报209等错误的情况下，当次的后面尝试的取流依然会走直连，而不是重新发起预操作乃至最终走流媒体】的问题
+15.更新转码库，解决32位手机上必现的崩溃问题。FmtCvt_IOS_8.0_nobitcode_V4.1.2.31_Build20181015
+16.更新播放库，解决线上发现的鱼眼崩溃问题 iOS_PlayCtrl_7.3.5.65_build2018_1015
+17.修复缺陷：从4倍抽帧快放切换到正常速度依然播放抽帧的I帧问题（播放库内有缓存）
+18.在setStreamEventBlock全局回调中增加EZ_EVENT_HCNETSDK_EXCEPTION类型，表示HCNetSDK全局异常回调，具体见接口说明
+
+iOS播放组件 2.4.0 更新记录：
+1.更新播放库，以兼容双向音视频通话（音频播放由AudioQueue改为AudioUnit;禁止播放库配置音频路由）
+2.优化现有音频逻辑，支持播放和对讲的时候支持蓝牙耳机以及有线耳机
+3.更新 libcasclient-v2.5.0.2.20180706_209077 支持 P2P 回放、对讲、录像下载
+4.修改取流库，支持P2P录像回放、对讲、录像下载,上层在回放、对讲时要默认禁止掉P2P的取流方式，如果发现支持才打开
+5.更新UDT 到 1.0.9, 配合 CAS 2.5.0
+6.增加P2P 回放 和 对讲 的 上报
+7.在P2P取流前 调用CAS接口判断 P2P预连接是否还在
+8.添加转码库，支持通过转码库 将 非 AAC音频 的 PS文件，转为 AAC音频 的 MP4文件，外部接口没有变化
+9.PS->MP4 逻辑： 1.(H.265/H.264)+非AAC音频(包括G721μ、G721a、G722、G726、MPEG、PCM）走转码库，统一转为AAC
+                2.H.264+AAC、H.265+AAC 均按原有转封装库逻辑走
+10.更新播放库，播放库提供PlayM4_bInitAudiounitMode接口，当前采用RemoteIO模式播放音频（播放库的默认行为，区别于双向音视频对讲的使用方式）
+11.为为转码库 更新 帧分析库 版本： AnalyzeData_4.3.2.9_ios32(64)_base_20180727
+12.更新 libcasclient-v2.5.0.2.20180802_215296 去除场景化统计代码
+13.在解码状态，如果超时时间到了，判断当前流量如果超过1K，延长5S超时，减少一次重试
+14.更新CAS v2.4.1.20180716_210971 支持区分内外网直连回放快放
+15.更新 opensslwrap v1.8.4_209795 配合 CAS （解决问题：修复aes加解密中，传入key中存在0值，导致参数校验不过的问题）
+16.更新 streamclient v3.0.4.20180730_213690 支持流媒体回放快放
+17.调整现有的setPlaybackRate接口 rate 的定义与设备统一，请关注
+18.在setPlaybackRate接口中，如果之前是 16/8倍速 而切换后 是 一倍速以及以下，清理播放库缓存，否则会存在切换不及时问题
+19.Ping 增加- (void)setPingErrorList:(NSArray *)errorList 接口，用于外部定义哪些业务的哪些错误码做Ping操作
+20.增加 - (int)refreshPlay:(NSInteger)fecSubPort 接口 用于刷新 鱼眼窗口
+21.修复 SD卡 快放时暂停 之后再恢复 速率不生效问题
+22.修复流媒体切P2P的过程中 刚好流媒体报错 导致 有错误码上报 但 没有子表上报的情况
+
+iOS播放组件 2.3.0 更新记录：
+1.在setStreamEventBlock全局回调中增加EZ_EVENT_DEV_INFO_UPDATED类型，表示设备操作码更新
+2.增加updateDevInfoToCache:和getDevInfoFromCache:两个接口用于通用播放库中的操作码设置和获取
+3.内部增加Ping模块
+4.增加setPingHost:接口，用来设置内部Ping操作时同步Ping的主机地址
+5.增加剩余token接口：numOfTokensLeft
+6.增加小码流参数iSmallStream
+7.增加是否是分享的设备iShare
+8.蚁兵代理的上报增加时间戳字段：timeStamp
+9.增加Ping模块的开关setAllowPing:，Ping模块默认是关闭的
+10.增加Ping结果的统计数据回调设置接口：- (void)setPingStatisticBlock:(void (^)(NSDictionary *statisticDict))block;
+11.对流媒体取流的 20001,21009,21209,21008,21208 错误码 增加Ping检测
+12.对P2P取流的 10209、10213错误码 以及对讲取流的30001以及30002错误码 增加Ping检测
+13.更新播放库临时版本：
+14.增加设置鱼眼显示回调的函数：- (int)setDisplayCallbackOfFECPort:(int)fecSubPort callbackBlock:(void (^)(int fecSubPort))block
+15.鱼眼参数设置增加绝对值设置接口setFEC3DRotateABS
+16.对P2P打洞的 10209、10213错误码 增加Ping检测
+17.鱼眼增加getFEC3DRotateSpecialViewInfo接口 用来 获取最佳视角的缩放参数
+18.鱼眼增加setAnimation:type:currentFrame:totalFram: 用来做壁装弧面的动画
+19.取流参数中增加appLid， app层上层传入lid，传递到设备端用来做5410优化和日志联合查询
+20.对讲增加setTalkRemoteMuted:接口，用于全双工对讲时设置手机端是否能听到对端的声音
+21.为流媒体的UDP取流优化卡顿比检测逻辑（内部修改）
+22.更新播放库 iOS_Playctrl7.3.5.34_build20180608_39422
+23.-2场景分解统计。 子表增加inSubPreviwe_t,apiStart_t,apiBack_t三个字段
+24.更新HCNetSDK iOS_V5.3.5.51_build20180706_CN，用以解决楼江提出的EZVIZ的问题
+
+iOS播放组件2.2.0更新记录：
+1.通用库从上层直接接受云存储时间的格式，由现有的NSDate，修改为字符串，并透传（字符串格式"yyyyMMdd'T'HHmmss'Z'"）；包括SD卡的回放时间，统一修改；包括，SD卡回放接口、云存储回放接口、云存储seek、云存储speed
+2.更新miniupnp库到v2.0.20180203_187479
+3.更新libcasclient-v2.3.2.20180305_187923
+4.播放层流结束逻辑修改，超时、取流出错重试逻辑整理（内部修改，不影响外部接口）
+5.超时错误码区分：将原来15的错误码，区分为：
+EZ_ERROR_STREAM_HEADER_TIMEOUT = 23,//新定义的流头超时
+EZ_ERROR_STREAM_DATA_TIMEOUT = 24,//新定义的流数据超时
+EZ_ERROR_STREAM_DECODE_TIMEOUT = 25,//新定义的解码超时
+6.更新对讲库，解决对讲库内部资源冲突问题（对讲库规避了这个崩溃，返回错误，通用播放库会报EZ_VIDEOPLAYER_ERROR_NO_INTERCOM_RESOURCE）
+7.更新opensslwrap v1.8.3_189564 修复录像查询时设备返回数据长度大于30KB导致的崩溃问题
+8.增加对依赖库的版本检测（需要APP将通用播放库的依赖文件，打包时一并打进去）
+9.增加checkAllSubLibraryVersion接口，用于在openDebugInfo 打开的情况下 check几个主要的二方依赖库的版本信息（请在调试的情况下打开openDebugInfo，然后调用）
+10.EZPlayerParam中增加参数appLid，由app层传入，用于流媒体取流
+11.流媒体预览取流子表上报增加firstR，表示取流采用缓存vtdu时首次取流失败的错误码
+12.增加timeStamp上报字段（流媒体预览子表）
+13.在startPreivew 结束后 上抛 取流类型，用以代替播放层直接拉取取流类型（内部修改）
+15.增加近端啸叫抑制接口setHSParam( 建议notch=4，time=500 ）
+16.更新StreamClient libstreamclient-v3.0.2.20180330_191911
+17.增加UDP QOS相关字段上报（在流媒体取流子表中，成功的子表才有）
+18.对H.265的视频，在iOS11以下系统上直接提示不能保存
+19.对于老tts对讲的30002错误码和新tts对讲的41025错误码增加一次重试
+20.对于Smart264、Smart265的码流，转封装到MP4直接提示不支持
+21.更新libstreamclient-v3.0.2.20180404_192691
+22.提供内部的DNS解析的超时设置接口setDNSTimeout，默认3S
+23.P2Pv3 打洞配置接口修改：setP2PV3ConfigWithKeyInfo 去除了原有的ticket 无需再传入
+24.播放参数EZPlayerParam中增加usP2PKeyVer 和 szP2PLinkKey 两个参数 支持P2Pv3信令体加密
+25.增加CAS的P2P透传相关接口：ezstream_createEZCASClient ezstream_destroyEZCASClient ezstream_transferViaP2P (与取流不相关，单独封装C接口）
+26.更新对讲库 增加写数据接口（仅DEBUG下打开）
+27.解决HC发现的DEBUG下写数据崩溃问题
+
+iOS播放组件2.1.0更新记录：
+1.增加P2P重定向时上抛P2PServer地址信息
+2.增加云存储回放的StorageVersion和videoType两个字段
+3.更新NetSDK 5.3.2.16
+4.为HCNetSDK 更新 opensslwrap 其中包含openssl 1.0.2l
+5.更新对讲库到3.0.5，优化iPhone的对讲效果；去除原有针对猫眼设备的openAGC接口；修改原有的音频路由逻辑。
+6.更新播放库到ios_playctrl_7.3.5.30_build20171226_34724
+7.增加近端啸叫抑制接口setHSParam
+8.更新CAS到v2.3.1.20180105_181115
+9.增加云存储下载的StorageVersion和videoType两个字段
+10.更新libstreamclient=v2.0.0.20180109_181653, vtdu缓存
+11.P2P的状态回调setP2pStatusBlock函数名修改为setStreamEventBlock, 全局事件的回调从此函数抛出。同时增加eventType:EZ_EVENT_VTDU_CACHE，表示本次流媒体取流使用的vtdu信息，onEvent中data的格式为ip:port，app需要缓存vtdu的ip和port
+12.EZPlayerParam参数中增加vtduCachedIp和vtduCachedPort,传入缓存的vtdu信息
+13.更新对讲库，解决设备端底噪过大，导致对讲效果变差的问题（手机端双重降噪）
+14.更新播放库ios_playctrl_7.3.5.31_build20180116_35468 替换aac音频算法库，修改编码aac数据可能会出现的长度异常
+15.NetSDK取流增加专用通道号参数iNetSDKChannelNumber
+16.增加displayBuf设置接口（HC)
+17.更新对讲库 解决C2miniS发现的底噪明显（电流音)的问题
+18.增加isP2PPreconnecting接口，判断当前设备是否正在打洞
+19.更新HCNetSDK临时版本：iOS_V5.3.5.151_build20180124_CN
+20.增加清理播放库音频接口inacivtePlayerAudio，用于解决后台耗电问题，在切到后台的时候需要调用
+21.更新 预览子表统计 删除devSerial 和 cn
+22.支持云存储在码流传输完成并【等待解码或者正在播放】的时候，进行seek、speed
+23.更新HCNetSDK iOS_V5.3.5.20_build20180205
+24.更新转封装库逻辑，允许H.265视频转为MP4（iOS11可以保存）
+25.延长P2P、内外网直连的流头和流数据超时（同步4.0.12的相关细节）
+
+iOS播放组件2.0.1更新记录：
+20171220:
+1.更新CAS到libcasclient-v2.3.0.20171125_176467
+2.修改对讲的统计上报，增加主表，修改子表
+
+20171225:
+1.更新CAS到libcasclient-v2.3.0.1.20171225_179361
+
+20180102:
+1.更新播放库到7.3.4.39 解决4.0.0 灰度发现的崩溃问题
+
+
+iOS播放组件2.0.0更新记录：
+1.接入取流库2.0.0，影响所有的取流方式
+2.HCNetSDK取流下沉到取流库，接口未变
+3.更新播放库到 7.3.4.35，解决1.Xcode9打包iOS11无法播放问题 2.解决私有数据丢失问题 3.解决壁装弧面、鱼眼矫正参数设置先后顺序问题
+4.修改蚁兵/流媒体上报逻辑：对于蚁兵失败转流媒体的取流，分两次数据上报
+5.修改对讲的逻辑，收到对讲信令成功后 即起对讲库 开始发流
+6.修改卡顿比的BUG（之前多个播放器共享变量，导致款比统计不准确）
+7.统计上报增加transmode字段
+8.在预览时提供YUV原始数据回调到上层
+9.调整统计数据上报,部分主表数据由字表提供（uuid、r、via、display_t、data_t等等，详细见文档）
+10.提供依赖于播放库预录制的新的录制接口
+11.修改SDK初始化接口，新增NetSDK加密选项
+12.修改云台私有数据上报，统一以DATA的形式上报
+13.优化P2P、内外网直连的超时逻辑
+14.优化卡顿比统计，仅首张成功的子表会有相关统计
+15.更新播放库到 7.3.4.36，解决壁装弧面大小问题
+16.更新对讲库，同时EZIntercomPlayer增加属性：openAGC ，用来专门对猫眼设备优化对讲效果，仅猫眼设备打开该开关
+17.更新streamclient库，解决streamclient在流数据先来的情况下丢数据问题
+18.提供云存储无缝切换相关接口
+19.更新CAS libcasclient-v2.2.0.1.20171206_176436 解决外网地址查询问题（严重问题）
+20.更新播放库到 ios_PlayCtrl_7.3.4.38_build_20171207_34306 解决1.C2C纬度拉伸问题2.猫眼预录制不支持非标准分辨率
+
+iOS播放组件1.7.1更新点：
+1.修改P2PServer的设置方式，信息由原来的与账号绑定，修改为与设备绑定（在设备信息里附带p2p server 地址）（P2PV3）
+2.增加云存储快放功能
+3.更新了转封装库SystemTrans_2.5.2.5_ios_base_20170519，增加对加密音频的支持
+4.转封装逻辑修改，对于有问题的码流（音频的相关字段不合法），转封装依然可以成功，转出来没有声音（之前的做法，直接提示无法保存）
+5.更新UDT库，解决杀应用崩溃问题
+6.统计上报的子表，增加了systemName字段
+7.增加直连的预操作上报
+8.修改原有的DNS缓存逻辑（为流媒体取流预先解析IP)
+9.增加播放组件日志回调
+10.增加对讲时扬声器、听筒的切换接口
+
+
+iOS播放组件1.7.0更新记录：
+1.增加对水平180相机的鱼眼矫正（壁装弧面）
+2.解决iOS内网直连和P2P取流成功率比Android低的问题（预操作优化，3分钟清理）
+3.iPhone7/7Plus 对讲效果优化，半双工采用双扬声器以及采用下麦克风
+4.对讲支持UDP协议（接入new tts)
+5.增加VDTU取流埋点
+6.为HC的HCNetSDK回放增加码流参数
