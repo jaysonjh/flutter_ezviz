@@ -9,6 +9,15 @@ func ezvizLog(msg: String) {
 public class SwiftFlutterEzvizPlugin: NSObject, FlutterPlugin {
     
     private var isInit = false
+    private let eventChannel: FlutterEventChannel
+    /// Native to flutter event
+    private var eventSink: FlutterEventSink?
+    
+    init(eventChannel: FlutterEventChannel) {
+        self.eventChannel = eventChannel
+        super.init()
+        self.eventChannel.setStreamHandler(self)
+    }
     
     deinit {
         if isInit {
@@ -18,7 +27,8 @@ public class SwiftFlutterEzvizPlugin: NSObject, FlutterPlugin {
     
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: EzvizChannelMethods.methodChannelName, binaryMessenger: registrar.messenger())
-    let instance = SwiftFlutterEzvizPlugin()
+    let eventChannel = FlutterEventChannel(name: EzvizChannelEvents.eventChannelName, binaryMessenger: registrar.messenger())
+    let instance = SwiftFlutterEzvizPlugin(eventChannel: eventChannel)
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
@@ -46,4 +56,18 @@ public class SwiftFlutterEzvizPlugin: NSObject, FlutterPlugin {
         result(FlutterMethodNotImplemented)
     }
   }
+}
+
+extension SwiftFlutterEzvizPlugin: FlutterStreamHandler {
+    public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        self.eventSink = events
+        ezvizLog(msg: "onListen \(eventSink.debugDescription)")
+        return nil
+    }
+    
+    public func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        ezvizLog(msg: "onCancel \(eventSink.debugDescription)")
+        self.eventSink = nil
+        return nil
+    }
 }

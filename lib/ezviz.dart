@@ -4,12 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_ezviz/ezviz_definition.dart';
 import 'package:flutter_ezviz/ezviz_methods.dart';
 import 'package:flutter_ezviz/ezviz_utils.dart';
-
-/// 插件事件处理
-typedef void EzvizOnEvent(EzvizEvent event);
-
-/// 插件事件异常
-typedef void EzvizOnError();
+import 'package:flutter_ezviz/ezviz_player.dart';
+import 'package:flutter_ezviz/ezviz_errorcode.dart';
 
 /// 插件Manager
 class EzvizManager {

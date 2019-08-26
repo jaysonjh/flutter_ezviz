@@ -7,23 +7,33 @@
 
 import Foundation
 
-class EzvizView : NSObject,FlutterPlatformView {
+class EzvizView : NSObject,FlutterPlatformView{
     
     private let player: EzvizPlayer
     private let methodChannel: FlutterMethodChannel
+    private let eventChannel: FlutterEventChannel
+    /// Native to flutter event
+    private var eventSink: FlutterEventSink?
     
     init(messenger: FlutterBinaryMessenger, viewId: Int64, frame: CGRect) {
-        player = EzvizPlayer(frame: frame)
+        player = EzvizPlayer()
         let methodChannelName = EzvizPlayerChannelMethods.methodChannelName + "_\(viewId)"
+        let eventChannelName = EzvizPlayerChannelEvents.eventChannelName + "_\(viewId)"
         methodChannel = FlutterMethodChannel.init(name: methodChannelName, binaryMessenger: messenger)
+        eventChannel = FlutterEventChannel.init(name: eventChannelName, binaryMessenger: messenger)
         super.init()
         methodChannel.setMethodCallHandler { [weak self](call, result) in
             self?.onHandle(call, result: result)
         }
+        eventChannel.setStreamHandler(self)
+        NotificationCenter.default.addObserver(self, selector: #selector(playerStatusChanged(notification:)), name: .EzvizPlayStatusChanged, object: nil)
     }
     
     deinit {
         player.playerRelease()
+        eventChannel.setStreamHandler(nil)
+        methodChannel.setMethodCallHandler(nil)
+        NotificationCenter.default.removeObserver(self)
     }
     
     func view() -> UIView {
@@ -94,5 +104,31 @@ class EzvizView : NSObject,FlutterPlatformView {
         default:
             result(FlutterMethodNotImplemented)
         }
+    }
+    
+    @objc func playerStatusChanged( notification: Notification) {
+        if let data = notification.userInfo as? [String: Any] {
+            do {
+                let playerResult = try EzvizPlayerResult(status: data["status"] as? UInt ?? 0, message: data["message"] as? String ?? "")
+                let event = EzvizPlayerEventResult(eventType: EzvizPlayerChannelEvents.playerStatusChange, msg: "Player Status Changed", data: objToJSONString(obj: playerResult))
+                self.eventSink?(objToJSONString(obj: event))
+            }catch{}
+        }
+    }
+}
+
+
+// MARK: - FlutterStreamHandler
+extension EzvizView : FlutterStreamHandler {
+    func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        self.eventSink = events
+        ezvizLog(msg: "onListen \(eventSink.debugDescription)")
+        return nil
+    }
+    
+    func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        ezvizLog(msg: "onCancel \(eventSink.debugDescription)")
+        self.eventSink = nil
+        return nil
     }
 }

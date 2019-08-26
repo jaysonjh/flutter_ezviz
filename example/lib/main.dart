@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_ezviz/ezviz.dart';
+import 'package:flutter_ezviz/ezviz_player.dart';
+import 'package:flutter_ezviz/ezviz_definition.dart';
 
 void main() => runApp(MyApp());
 
@@ -12,47 +13,26 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-  String _sdkVersion = 'Unknown';
+  EzvizPlayerController playerController;
+  String _deviceSerial = "D35923454";
+  int _cameraNo = 1;
+  String _verifyCode = "RXPZFF";
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
-    sdkVersion();
+    initSDK();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
+  Future<bool> initSDK() async {
+    bool result;
+    EzvizInitOptions options = EzvizInitOptions(appkey: 'ab658cff26434f5085d276c23370273e', accessToken: 'at.9vckb7393o78sumy2zu9jy3l5x5jqsn4-58fal9s2fb-02a0u1f-kyiiztys1', enableLog: true,enableP2P: false);
     try {
-      platformVersion = await EzvizManager.shared().platformVersion;
+      result = await EzvizManager.shared().initSDK(options);
     } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      result = false;
     }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
-  }
-
-  Future<void> sdkVersion() async {
-    String sdkVersion;
-    try {
-      sdkVersion = await EzvizManager.shared().sdkVersion;
-    } on PlatformException {
-      sdkVersion = 'Failed to get platform version.';
-    }
-    if (!mounted) return;
-    setState(() {
-      _sdkVersion = sdkVersion;
-    });
+    return result;
   }
 
   @override
@@ -62,16 +42,54 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
+        body: Container(
           child: Column(
             children: <Widget>[
-              Text('Running on: $_platformVersion\n'),
-              Text('$_sdkVersion\n'),
+              Container(
+                width: 750,
+                height: 360,
+                padding: EdgeInsets.all(5.0),
+                child: EzvizPlayer(
+                  onCreated: onPlayerCreated,
+                ),
+              ),
+              RaisedButton(
+                onPressed: () async{
+                  // await playerController.initPlayerByDevice(_deviceSerial, _cameraNo);
+                  await Future.wait([playerController.initPlayerByDevice(_deviceSerial, _cameraNo),playerController.setPlayVerifyCode(_verifyCode)]);
+                },
+                child: Text('初始化播放器'),
+              ),
+              RaisedButton(
+                onPressed: () async{
+                  await playerController.startRealPlay();
+                },
+                child: Text('开启直播'),
+              ),
+              RaisedButton(
+                onPressed: () async{
+                  await playerController.stopRealPlay();
+                },
+                child: Text('结束直播'),
+              ),
             ],
           ),
           // child: Text('Running on: $_platformVersion\n'),
         ),
       ),
     );
+  }
+
+  void onPlayerCreated(EzvizPlayerController ezvizPlayerController) {
+    this.playerController = ezvizPlayerController;
+    this.playerController.setPlayerEventHandler(onPlayerEvent, onPlayerError);
+  }
+
+  void onPlayerEvent(EzvizEvent event){
+    print('onPlayerEvent : ${event.eventType} ${event.data}');
+  }
+
+  void onPlayerError(error) {
+    print('onPlayerError : ${error.toString()}');
   }
 }

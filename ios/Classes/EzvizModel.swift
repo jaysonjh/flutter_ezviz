@@ -70,3 +70,27 @@ var netPTZKeys: [AnyHashable : Any] = [
     Command_ZoomIn: EZPTZCommandType.ZOOM_IN,
     Command_ZoomOut: EZPTZCommandType.ZOOM_OUT,
 ]
+
+/// 数据返回
+struct EzvizPlayerEventResult : Codable {
+    let eventType: String
+    let msg: String
+    let data: String?
+    
+    init(eventType: String, msg: String, data: String?) {
+        self.eventType = eventType
+        self.msg = msg
+        self.data = data
+    }
+}
+
+/// 播放状态
+struct EzvizPlayerResult: Codable {
+    let status: UInt
+    let message: String?
+    
+    init(status: UInt,message: String?) throws {
+        self.status = status
+        self.message = message
+    }
+}

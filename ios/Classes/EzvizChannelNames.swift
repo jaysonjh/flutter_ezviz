@@ -43,8 +43,6 @@ class EzvizChannelMethods {
 class EzvizChannelEvents {
     /// 插件event入口名称
     static let eventChannelName = "flutter_ezviz_event";
-    /// 播放器状态事件
-    static let playerStatusChange = "playerStatusChange";
 }
 
 // 插件播放器方法名称定义
@@ -69,4 +67,12 @@ class EzvizPlayerChannelMethods {
     static let playerRelease = "playerRelease";
     /// 设置播放密码
     static let setPlayVerifyCode = "setPlayVerifyCode";
+}
+
+// 插件事件名称定义
+class EzvizPlayerChannelEvents {
+    /// 插件event入口名称
+    static let eventChannelName = "flutter_ezviz_player_event";
+    /// 播放器状态事件
+    static let playerStatusChange = "playerStatusChange";
 }

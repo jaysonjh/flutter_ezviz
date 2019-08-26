@@ -83,3 +83,11 @@ class EzvizPlayerChannelMethods {
   /// 设置播放密码
   static const String setPlayVerifyCode = "setPlayVerifyCode";
 }
+
+// 插件播放器事件名称定义
+class EzvizPlayerChannelEvents {
+  /// 插件event入口名称
+  static const String eventChannelName = "flutter_ezviz_player_event";
+  /// 播放器状态事件
+  static const String playerStatusChange = "playerStatusChange";
+}
