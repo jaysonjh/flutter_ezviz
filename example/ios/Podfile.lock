@@ -1,6 +1,6 @@
 PODS:
   - Flutter (1.0.0)
-  - flutter_ezviz (0.0.1):
+  - flutter_ezviz (0.0.2):
     - Flutter
 
 DEPENDENCIES:
@@ -15,8 +15,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
-  flutter_ezviz: 72f2b65efee6c838c25e19e6c2deb2b0e674c504
+  flutter_ezviz: 3c25cd245c45bbd19cdac939acbb86cacffef860
 
 PODFILE CHECKSUM: b6a0a141693093b304368d08511b46cf3d1d0ac5
 
-COCOAPODS: 1.7.5
+COCOAPODS: 1.7.3
