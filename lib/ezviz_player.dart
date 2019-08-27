@@ -100,7 +100,7 @@ class EzvizPlayerController {
     Map<String, dynamic> data = new Map<String, dynamic>();
     data['startTime'] = dateToStr(startTime);
     data['endTime'] = dateToStr(endTime);
-    return await _channel.invokeMethod(EzvizPlayerChannelMethods.startReplay);
+    return await _channel.invokeMethod(EzvizPlayerChannelMethods.startReplay,data);
   } 
 
   /// 停止回放

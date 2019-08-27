@@ -52,6 +52,16 @@ public class SwiftFlutterEzvizPlugin: NSObject, FlutterPlugin {
         EzvizManager.getDeviceInfo(call.arguments, result: result)
     case EzvizChannelMethods.deviceInfoList:
         EzvizManager.getDeviceInfoList(result: result)
+    case EzvizChannelMethods.setVideoLevel:
+        EzvizManager.setVideoLevel(call.arguments, result: result)
+    case EzvizChannelMethods.controlPTZ:
+        EzvizManager.controlPTZ(call.arguments, result: result)
+    case EzvizChannelMethods.loginNetDevice:
+        EzvizManager.loginNetDevice(call.arguments, result: result)
+    case EzvizChannelMethods.logoutNetDevice:
+        EzvizManager.logoutNetDevice(call.arguments, result: result)
+    case EzvizChannelMethods.netControlPTZ:
+        EzvizManager.netControlPTZ(call.arguments, result: result)
     default:
         result(FlutterMethodNotImplemented)
     }

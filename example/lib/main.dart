@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_ezviz/ezviz.dart';
 import 'package:flutter_ezviz/ezviz_player.dart';
 import 'package:flutter_ezviz/ezviz_definition.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_ezviz/ezviz_utils.dart';
 
 void main() => runApp(MyApp());
 
@@ -14,13 +14,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  EzvizPlayerController playerController;
-  String _deviceSerial = "D35923454";
-  int _cameraNo = 1;
-  String _verifyCode = "RXPZFF";
-  DateTime _start = DateTime.now();
-  DateTime _end = DateTime.now();
-
   @override
   void initState() {
     super.initState();
@@ -46,23 +39,65 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              _playerView(),
-              _initPlayer(),
-              _realPlayer(),
-              _replayer(),
-            ],
-          ),
-          // child: Text('Running on: $_platformVersion\n'),
-        ),
-      ),
+      home: Home(),
     );
+  }
+}
+
+class Home extends StatefulWidget {
+  Home({Key key}) : super(key: key);
+
+  _HomeState createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  EzvizPlayerController playerController;
+  final String _deviceSerial = "D35923454";
+  final int _cameraNo = 1;
+  final String _verifyCode = "RXPZFF";
+  DateTime _start = DateTime.now();
+  DateTime _end = DateTime.now();
+  String _videoName = '0-流畅';
+  int _videoLevel = 0;
+  // 0-流畅，1-均衡，2-高清，3-超清
+  final List<String> _videoLevels = ['0-流畅', '1-均衡', '2-高清', '3-超清'];
+  bool isShowPTZ = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Plugin example app'),
+      ),
+      body: _body(context),
+    );
+  }
+
+  Widget _body(BuildContext context) {
+    if (this.isShowPTZ) {
+      return SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            _playerView(),
+            _initPlayer(context),
+            _controllerPad(context),
+          ],
+        ),
+        // child: Text('Running on: $_platformVersion\n'),
+      );
+    } else {
+      return SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            _playerView(),
+            _initPlayer(context),
+            _realPlayer(),
+            _replayer(context),
+          ],
+        ),
+        // child: Text('Running on: $_platformVersion\n'),
+      );
+    }
   }
 
   Widget _playerView() {
@@ -76,51 +111,85 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Widget _initPlayer() {
+  Widget _initPlayer(BuildContext context) {
     return Container(
-      width: 350,
-      height: 44,
-      padding: EdgeInsets.all(5.0),
-      child: RaisedButton(
-        onPressed: () async {
-          // await playerController.initPlayerByDevice(_deviceSerial, _cameraNo);
-          await Future.wait([
-            playerController.initPlayerByDevice(_deviceSerial, _cameraNo),
-            playerController.setPlayVerifyCode(_verifyCode)
-          ]);
-        },
-        child: Text('初始化播放器'),
-      ),
-    );
+        width: 750,
+        height: 120,
+        padding: EdgeInsets.all(5.0),
+        decoration: BoxDecoration(
+            border: Border.all(width: 0.5, color: Colors.black12)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            FlatButton(
+              onPressed: () async {
+                // await playerController.initPlayerByDevice(_deviceSerial, _cameraNo);
+                await Future.wait([
+                  playerController.initPlayerByDevice(_deviceSerial, _cameraNo),
+                  playerController.setPlayVerifyCode(_verifyCode)
+                ]);
+              },
+              child: Text('初始化播放器'),
+            ),
+            FlatButton(
+              onPressed: () {
+                setState(() {
+                  isShowPTZ = !isShowPTZ;
+                });
+              },
+              child: Text(isShowPTZ ? '关闭云台' : '开启云台'),
+            )
+          ],
+        ));
   }
 
   Widget _realPlayer() {
     return Container(
         width: 750,
-        height: 44,
+        height: 120,
         margin: EdgeInsets.all(5.0),
         decoration: BoxDecoration(
             border: Border.all(width: 0.5, color: Colors.black12)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+        child: Column(
           children: <Widget>[
-            RaisedButton(
-              onPressed: () async {
-                await playerController.startRealPlay();
-              },
-              child: Text('开启直播'),
+            ListTile(
+              title: Text('视频清晰度'),
+              trailing: DropdownButton(
+                value: _videoName,
+                hint: Text('选择清晰度'),
+                items: _videoLevels.map<DropdownMenuItem<String>>((value) {
+                  return DropdownMenuItem(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (val) async {
+                  await this.onVideoLevel(context, val);
+                },
+              ),
             ),
-            RaisedButton(
-              onPressed: () async {
-                await playerController.stopRealPlay();
-              },
-              child: Text('结束直播'),
-            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                RaisedButton(
+                  onPressed: () async {
+                    await playerController.startRealPlay();
+                  },
+                  child: Text('开启直播'),
+                ),
+                RaisedButton(
+                  onPressed: () async {
+                    await playerController.stopRealPlay();
+                  },
+                  child: Text('结束直播'),
+                ),
+              ],
+            )
           ],
         ));
   }
 
-  Widget _replayer() {
+  Widget _replayer(BuildContext context) {
     return Container(
       width: 750,
       margin: EdgeInsets.all(5.0),
@@ -128,22 +197,35 @@ class _MyAppState extends State<MyApp> {
           BoxDecoration(border: Border.all(width: 0.5, color: Colors.black12)),
       child: Column(
         children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              RaisedButton(
-                onPressed: () {
-                  onShowTime(context, _start, true);
-                },
-                child: Text('回播开始时间'),
+          ListTile(
+            title: Text(
+              '开始时间: ${_start.toString()}',
+              style: TextStyle(fontSize: 15, color: Colors.black54),
+            ),
+            trailing: FlatButton(
+              onPressed: () {
+                onShowTime(context, _start, true);
+              },
+              child: Text(
+                '更改时间',
+                style: TextStyle(color: Colors.blueAccent),
               ),
-              RaisedButton(
-                onPressed: () {
-                  onShowTime(context, _end, false);
-                },
-                child: Text('回播结束时间'),
+            ),
+          ),
+          ListTile(
+            title: Text(
+              '结束时间: ${_end.toString()}',
+              style: TextStyle(fontSize: 15, color: Colors.black54),
+            ),
+            trailing: FlatButton(
+              onPressed: () {
+                onShowTime(context, _end, false);
+              },
+              child: Text(
+                '更改时间',
+                style: TextStyle(color: Colors.blueAccent),
               ),
-            ],
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -170,16 +252,84 @@ class _MyAppState extends State<MyApp> {
   Widget _controllerPad(BuildContext context) {
     return Container(
       width: 750,
-      height: 200,
       child: Column(
         children: <Widget>[
           Row(
             children: <Widget>[
-              InkWell(
-                onTap: () {},
-              )
+              GestureDetector(
+                onTapDown: (detail) async {
+                  await this.onControllerPad(4, false);
+                },
+                onTapUp: (detail) async {
+                  await this.onControllerPad(4, true);
+                },
+                child: Icon(
+                  Icons.zoom_in,
+                  size: 24,
+                ),
+              ),
+              GestureDetector(
+                onTapDown: (detail) async {
+                  await this.onControllerPad(5, false);
+                },
+                onTapUp: (detail) async {
+                  await this.onControllerPad(5, true);
+                },
+                child: Icon(Icons.zoom_out, size: 24),
+              ),
             ],
-          )
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              GestureDetector(
+                onTapDown: (detail) async {
+                  await this.onControllerPad(0, false);
+                },
+                onTapUp: (detail) async {
+                  await this.onControllerPad(0, true);
+                },
+                child: Icon(Icons.arrow_drop_up, size: 24),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              GestureDetector(
+                onTapDown: (detail) async {
+                  await this.onControllerPad(1, false);
+                },
+                onTapUp: (detail) async {
+                  await this.onControllerPad(1, true);
+                },
+                child: Icon(Icons.arrow_left, size: 24),
+              ),
+              GestureDetector(
+                onTapDown: (detail) async {
+                  await this.onControllerPad(3, false);
+                },
+                onTapUp: (detail) async {
+                  await this.onControllerPad(3, true);
+                },
+                child: Icon(Icons.arrow_right, size: 24),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              GestureDetector(
+                onTapDown: (detail) async {
+                  await this.onControllerPad(2, false);
+                },
+                onTapUp: (detail) async {
+                  await this.onControllerPad(2, true);
+                },
+                child: Icon(Icons.arrow_drop_down, size: 24),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -203,7 +353,7 @@ class _MyAppState extends State<MyApp> {
         context: context,
         initialDate: time,
         firstDate: time.subtract(Duration(days: 15)),
-        lastDate: _start.add(Duration(days: 15)));
+        lastDate: time.add(Duration(days: 15)));
     if (currentTime != null) {
       setState(() {
         if (isStart) {
@@ -215,5 +365,67 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void onControllerPad(int command) async {}
+  Future<bool> onControllerPad(int cmd, bool isStop) async {
+    String command;
+    switch (cmd) {
+      case 0:
+        command = EzvizPtzCommands.Up;
+        break;
+      case 1:
+        command = EzvizPtzCommands.Left;
+        break;
+      case 2:
+        command = EzvizPtzCommands.Down;
+        break;
+      case 3:
+        command = EzvizPtzCommands.Right;
+        break;
+      case 4:
+        command = EzvizPtzCommands.ZoomIn;
+        break;
+      case 5:
+        command = EzvizPtzCommands.ZoomOut;
+        break;
+      default:
+    }
+    String action = isStop ? EzvizPtzActions.Stop : EzvizPtzActions.Start;
+    return await EzvizManager.shared().controlPTZ(this._deviceSerial,
+        this._cameraNo, command, action, EzvizPtzSpeeds.Normal);
+  }
+
+  Future<bool> onVideoLevel(BuildContext context, String name) async {
+    int level = 0;
+    if (name == '0-流畅') {
+      level = 0;
+    } else if (name == '1-均衡') {
+      level = 1;
+    } else if (name == '2-高清') {
+      level = 2;
+    } else if (name == '3-超清') {
+      level = 3;
+    }
+    setState(() {
+      _videoLevel = level;
+      _videoName = name;
+    });
+    bool result = await EzvizManager.shared()
+        .setVideoLevel(this._deviceSerial, this._cameraNo, this._videoLevel);
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('变更视频清晰度需重新开始直播!'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('关闭'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        });
+    return result;
+  }
 }
