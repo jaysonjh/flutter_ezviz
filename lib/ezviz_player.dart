@@ -33,6 +33,10 @@ class EzvizPlayerController {
         ezvizLog("JSON => $jsonData");
         var ezvizEvent = EzvizEvent.init(jsonData);
         if (ezvizEvent != null) {
+          if (ezvizEvent.eventType == EzvizChannelEvents.playerStatusChange) {
+            var mapData = json.decode(jsonData['data']);
+             ezvizEvent.data = EzvizPlayerStatus.fromJson(mapData);
+          }
           if (event != null) {
             event(ezvizEvent);
           }

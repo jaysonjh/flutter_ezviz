@@ -13,30 +13,6 @@ String dateToStr(DateTime dateTime) {
   return null;
 }
 
-/// 播放状态对象
-class EzvizPlayerStatus {
-  /// 状态
-  ///   * 0 Idle: 空闲状态，默认状态
-  ///   * 1 Init: 初始化状态
-  ///   * 2 Start: 播放状态
-  ///   * 3 Pause: 暂停状态(回放才有暂停状态)
-  ///   * 4 Stop: 停止状态
-  ///   * 9 Error: 错误状态
-  int status = 0;
-
-  /// 错误信息，只有在Error状态才不为空
-  String message = "";
-
-  EzvizPlayerStatus({this.status, this.message});
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['message'] = this.message;
-    return data;
-  }
-}
-
 /// 通道清晰度
 /// 0-流畅，1-均衡，2-高清，3-超清
 class EzvizVideoLevels {

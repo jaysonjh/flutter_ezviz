@@ -341,7 +341,8 @@ class _HomeState extends State<Home> {
   }
 
   void onPlayerEvent(EzvizEvent event) {
-    print('onPlayerEvent : ${event.eventType} ${event.data}');
+    EzvizPlayerStatus playerStatus = event.data is EzvizPlayerStatus ? (event.data as EzvizPlayerStatus) : null;
+    print('onPlayerEvent : ${event.eventType} ${playerStatus.status} ${playerStatus.message ?? ""}');
   }
 
   void onPlayerError(error) {
