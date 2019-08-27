@@ -17,11 +17,11 @@ class EzvizManager {
     /// 初始化SDK
     static func initSDK(_ arguments: Any?,result: @escaping FlutterResult) {
         if let map = arguments as? Dictionary<String, Any> {
-            let appkey = map["appkey"] as? String ?? AppKey
+            let appKey = map["appKey"] as? String ?? AppKey
             let accessToken = map["accessToken"] as? String ?? AccessToken
             let enableLog = map["enableLog"] as? Bool ?? false
             let enableP2P = map["enableP2P"] as? Bool ?? false
-            let ret = EZOpenSDK.initLib(withAppKey: appkey)
+            let ret = EZOpenSDK.initLib(withAppKey: appKey)
             EZOpenSDK.setAccessToken(accessToken)
             EZOpenSDK.setDebugLogEnable(enableLog)
             EZOpenSDK.enableP2P(enableP2P)

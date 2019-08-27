@@ -23,7 +23,7 @@ class _MyAppState extends State<MyApp> {
   Future<bool> initSDK() async {
     bool result;
     EzvizInitOptions options = EzvizInitOptions(
-        appkey: 'ab658cff26434f5085d276c23370273e',
+        appKey: 'ab658cff26434f5085d276c23370273e',
         accessToken:
             'at.9vckb7393o78sumy2zu9jy3l5x5jqsn4-58fal9s2fb-02a0u1f-kyiiztys1',
         enableLog: true,

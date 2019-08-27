@@ -7,16 +7,16 @@ typedef void EzvizOnError(error);
 
 /// 初始化SDK参数对象
 class EzvizInitOptions {
-  String appkey = "";
+  String appKey = "";
   String accessToken = "";
   bool enableLog = false;
   bool enableP2P = false;
   EzvizInitOptions(
-      {this.appkey, this.accessToken, this.enableLog, this.enableP2P});
+      {this.appKey, this.accessToken, this.enableLog, this.enableP2P});
   
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['appkey'] = this.appkey;
+    data['appKey'] = this.appKey;
     data['accessToken'] = this.accessToken;
     data['enableLog'] = this.enableLog;
     data['enableP2P'] = this.enableP2P;
