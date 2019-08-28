@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:flutter_ezviz/ezviz.dart';
-import 'package:flutter_ezviz/ezviz_player.dart';
-import 'package:flutter_ezviz/ezviz_definition.dart';
-import 'package:flutter_ezviz/ezviz_utils.dart';
+import 'package:flutter_ezviz/flutter_ezviz.dart';
 
 void main() => runApp(MyApp());
 
@@ -83,7 +80,6 @@ class _HomeState extends State<Home> {
             _controllerPad(context),
           ],
         ),
-        // child: Text('Running on: $_platformVersion\n'),
       );
     } else {
       return SingleChildScrollView(
@@ -95,7 +91,6 @@ class _HomeState extends State<Home> {
             _replayer(context),
           ],
         ),
-        // child: Text('Running on: $_platformVersion\n'),
       );
     }
   }
@@ -156,7 +151,6 @@ class _HomeState extends State<Home> {
               title: Text('视频清晰度'),
               trailing: DropdownButton(
                 value: _videoName,
-                hint: Text('选择清晰度'),
                 items: _videoLevels.map<DropdownMenuItem<String>>((value) {
                   return DropdownMenuItem(
                     value: value,
@@ -256,81 +250,59 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              GestureDetector(
-                onTapDown: (detail) async {
-                  await this.onControllerPad(4, false);
-                },
-                onTapUp: (detail) async {
-                  await this.onControllerPad(4, true);
-                },
-                child: Icon(
-                  Icons.zoom_in,
-                  size: 24,
-                ),
-              ),
-              GestureDetector(
-                onTapDown: (detail) async {
-                  await this.onControllerPad(5, false);
-                },
-                onTapUp: (detail) async {
-                  await this.onControllerPad(5, true);
-                },
-                child: Icon(Icons.zoom_out, size: 24),
-              ),
+              _controllerItem(context, 4, Icons.zoom_in),
+              _controllerItem(context, 5, Icons.zoom_out),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              GestureDetector(
-                onTapDown: (detail) async {
-                  await this.onControllerPad(0, false);
-                },
-                onTapUp: (detail) async {
-                  await this.onControllerPad(0, true);
-                },
-                child: Icon(Icons.arrow_drop_up, size: 24),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              GestureDetector(
-                onTapDown: (detail) async {
-                  await this.onControllerPad(1, false);
-                },
-                onTapUp: (detail) async {
-                  await this.onControllerPad(1, true);
-                },
-                child: Icon(Icons.arrow_left, size: 24),
-              ),
-              GestureDetector(
-                onTapDown: (detail) async {
-                  await this.onControllerPad(3, false);
-                },
-                onTapUp: (detail) async {
-                  await this.onControllerPad(3, true);
-                },
-                child: Icon(Icons.arrow_right, size: 24),
-              ),
+              _controllerItem(context, 0, Icons.arrow_drop_up),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              GestureDetector(
-                onTapDown: (detail) async {
-                  await this.onControllerPad(2, false);
-                },
-                onTapUp: (detail) async {
-                  await this.onControllerPad(2, true);
-                },
-                child: Icon(Icons.arrow_drop_down, size: 24),
-              ),
+              _controllerItem(context, 1, Icons.arrow_left),
+              SizedBox(width: 44,height: 44,),
+              _controllerItem(context, 3, Icons.arrow_right),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              _controllerItem(context, 2, Icons.arrow_drop_down),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _controllerItem(BuildContext context, int cmd, IconData iconData) {
+    return Container(
+      margin: EdgeInsets.all(3.0),
+      padding: EdgeInsets.all(3.0),
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+          border: Border.all(width: 0.5, color: Colors.black12),
+          borderRadius: BorderRadius.all(Radius.circular(5.0))
+          ),
+      child: GestureDetector(
+        onTapDown: (detail) async {
+          await this.onControllerPad(cmd, false);
+        },
+        onTapUp: (detail) async {
+          await this.onControllerPad(cmd, true);
+        },
+        onTapCancel: () async {
+          await this.onControllerPad(cmd, false);
+        },
+        child: Icon(
+          iconData,
+          size: 36,
+        ),
       ),
     );
   }
@@ -341,8 +313,11 @@ class _HomeState extends State<Home> {
   }
 
   void onPlayerEvent(EzvizEvent event) {
-    EzvizPlayerStatus playerStatus = event.data is EzvizPlayerStatus ? (event.data as EzvizPlayerStatus) : null;
-    print('onPlayerEvent : ${event.eventType} ${playerStatus.status} ${playerStatus.message ?? ""}');
+    EzvizPlayerStatus playerStatus = event.data is EzvizPlayerStatus
+        ? (event.data as EzvizPlayerStatus)
+        : null;
+    print(
+        'onPlayerEvent : ${event.eventType} ${playerStatus.status} ${playerStatus.message ?? ""}');
   }
 
   void onPlayerError(error) {
