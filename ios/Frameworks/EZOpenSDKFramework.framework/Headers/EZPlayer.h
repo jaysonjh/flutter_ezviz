@@ -74,12 +74,13 @@ typedef NS_ENUM(NSInteger, EZPlaybackRate) {
 - (void)player:(EZPlayer *)player didReceivedMessage:(NSInteger)messageCode;
 
 /**
+ *  该方法废弃于v4.8.8版本，底层库不再支持。请使用getStreamFlow方法
  *  收到的数据长度（每秒调用一次）
  *
  *  @param player     播放器对象
  *  @param dataLength 播放器流媒体数据的长度（每秒字节数）
  */
-- (void)player:(EZPlayer *)player didReceivedDataLength:(NSInteger)dataLength;
+- (void)player:(EZPlayer *)player didReceivedDataLength:(NSInteger)dataLength DEPRECATED_MSG_ATTRIBUTE("use getStreamFlow instead");
 
 /**
  *  收到的画面长宽值
@@ -200,6 +201,18 @@ typedef NS_ENUM(NSInteger, EZPlaybackRate) {
  @return 播放库的port,可能为-1（无效值）
  */
 - (int) getInnerPlayerPort;
+
+/**
+ 获取当前已播放的总流量，单位字节
+ eg.计算每秒的流量：
+ NSInteger a = [self getStreamFlow];
+ //1s后调用
+ NSInteger b = [self getStreamFlow];
+ NSInteger perSecondFlow = b - a;
+ 
+ @return 流量值
+ */
+- (NSInteger) getStreamFlow;
 
 /**
  *  开始对讲，异步接口，返回值只是表示操作成功，不代表播放成功
